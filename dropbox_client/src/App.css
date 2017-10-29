@@ -1,0 +1,216 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+
+  height: 40px;
+  text-align: center;
+
+}
+
+.login_img {
+  width: 288.5px;
+  height: 305px;
+  text-align: right;
+  margin-left: 300px;
+  margin-top: 10px;
+  margin-bottom: 110px;
+}
+
+.App-header {
+    top: 0;
+    right: 0;
+    left: 0;
+    overflow: hidden;
+    position: fixed;
+    padding:20px;
+    height: 76px;
+    z-index: 99;
+    font-size: 0;
+    background-color: #fff;
+    border-bottom: 1px solid #d0d4d9;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: rgb(208, 212, 217);
+    -webkit-box-shadow: 0px 1px 1px #d0d4d9;
+    box-shadow: 0px 1px 1px #d0d4d9;
+
+  
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.divStyle {
+  margin-top: 15%;
+  font-weight: 500;
+  color : black;
+  font-size: 120%;
+
+}
+.test {
+ top: 0;
+    right: 0;
+    left: 0;
+    overflow: hidden;
+    position: fixed;
+    height: 76px;
+    z-index: 99;
+    font-size: 0;
+    background-color: #fff;
+    border-bottom: 1px solid #d0d4d9;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: rgb(208, 212, 217);
+    -webkit-box-shadow: 0px 1px 1px #d0d4d9;
+    box-shadow: 0px 1px 1px #d0d4d9;
+}
+
+.login-body {
+
+    margin-top: 10%;
+
+}
+
+.sinup-btn {
+
+  margin-top: 18%;
+  margin-bottom: 15px;
+  font-weight: 500;
+  color : black;
+  font-size: 90%;
+
+}
+
+.login-form {
+
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+.home-body {
+  font-family: "Open Sans","lucida grande","Segoe UI",arial,verdana,"lucida sans unicode",tahoma,sans-serif;
+
+}
+
+.home-right-panel {
+  margin-top: 50px;
+    
+
+}
+
+.home-left-panel {
+
+  background: #F7F9FA;
+  height: 100vh;
+  width: 240px;
+  min-width: 240px;
+  
+}
+
+.home-left-panel-elements {
+
+  margin-top: 50px;
+  padding-left: 50px;
+  font-size: 110%;
+}
+
+.home-content {
+  
+  margin-top: 50px;
+   
+}
+
+.home-file-row {
+  border-bottom: 1px solid #d0d4d9;
+  width: 100%;
+  height : 35px;
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.profile-form {
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.profile-form-text-box {
+  height : 135px;
+}
+
+.profile-button {
+  
+  margin-left: 20px;
+}
+
+.home-gap {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.home-row-objects {
+  float: right;
+
+}
+
+.file-icon {
+  float:left;
+  margin-right: 10px;
+}
+
+.folder-icon-right {
+  margin-top: 10px;
+  margin-left: 40px;
+  margin-right: 10px;
+}
+
+.smiley-btn {
+  margin-top: 10px;
+  margin-right: 65px;
+  width: 200px;
+  height: 150px;
+  border-color: 5px solid #d0d4d9;
+  background-color: #F0F8FF;
+}
+
+.smiley-icon {
+  margin-left: 150px;
+
+}
+
+.smiley-content {
+
+  margin-left: 20px;
+  margin-top: 20px;
+  color:black;
+}
+
+.upload-btn {
+
+  margin-top: 40px;
+  height:40px;
+  margin-left: 20px;
+
+} 
+
+.dots {
+  height:20px;
+  width: 20px;
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+
+.message {
+  color: red;
+}

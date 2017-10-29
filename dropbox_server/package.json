@@ -1,0 +1,40 @@
+{
+  "name": "dropbox_server",
+  "version": "0.1.0",
+  "description": "dropbox_server",
+  "main": "hello-world-server.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": "",
+  "keywords": [
+    "node.js",
+    "eclipse",
+    "nodeclipse"
+  ],
+  "author": "",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "body-parser": "^1.18.2",
+    "chai": "*",
+    "connect-mongo": "^2.0.0",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
+    "ejs": "^2.5.7",
+    "express": "^4.16.1",
+    "express-fileupload": "^0.2.0",
+    "express-session": "^1.15.6",
+    "jsonwebtoken": "^8.0.1",
+    "mongodb": "^2.2.33",
+    "mysql": "^2.14.1",
+    "nodemon": "^1.12.1",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "supertest": "*"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1"
+  }
+}
