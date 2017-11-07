@@ -80,7 +80,8 @@ class Activity extends Component {
                                <Link to="/Home" className="row" style={pad}>Home</Link>
                                <Link to="/Files" className="row" style={pad}>My Files</Link>
                                <Link to="/Shared" className="row" style={pad}>Shared Files</Link>
-                               <Link to="/Files" className="row" style={pad}>Activity Log</Link>
+                               <Link to="/Group" className="row" style={pad}>Groups</Link>
+                               <Link to="/Activity" className="row" style={pad}>Activity Log</Link>
                                <Link to="/Profile" className="row" style={pad}>Profile</Link>
 
                               

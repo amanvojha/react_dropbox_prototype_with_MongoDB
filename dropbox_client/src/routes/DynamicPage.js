@@ -32,6 +32,14 @@ class DynamicPage extends Component {
 
    }
 
+   /*componentDidUpdate(prevProps, prevState) {
+    console.log('This props is valid ' , this.props.isValid)
+      
+      console.log('CURRENT FOLDER ' + this.props.curr_folder_id);
+      var parentId = this.props.curr_folder_id;
+      console.log('PARENT ' + parentId)
+   }*/
+
 
 
   
@@ -68,7 +76,12 @@ class DynamicPage extends Component {
                     {(item.isFile==1) ?
                           <img src={file_icon} className="file-icon"/>
                     :
-                          <Link to={url} onClick={() => this.props.setFolder(item.fileId)}><img src={folder_icon} className="file-icon" /></Link>
+                          <a href="#" onClick={() => 
+                                                  {
+                                                    this.props.setFolder(item.fileId)
+                                                    this.props.history.push(url)
+                                                  }
+                                              }><img src={folder_icon} className="file-icon" /></a>
                     }      
 
                     <div className="dropdown home-row-objects">
@@ -138,6 +151,7 @@ class DynamicPage extends Component {
                                <Link to="/Home" className="row" style={pad}>Home</Link>
                                <Link to="/Files" className="row" style={pad}>My Files</Link>
                                <Link to="/Shared" className="row" style={pad}>Shared Files</Link>
+                               <Link to="/Group" className="row" style={pad}>Groups</Link>
                                <Link to="/Activity" className="row" style={pad}>Activity Log</Link>
                                <Link to="/Profile" className="row" style={pad}>Profile</Link>
 

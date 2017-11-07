@@ -9,6 +9,7 @@ import Shared from './routes/Shared';
 import Activity from './routes/Activity';
 import EditProfile from './routes/EditProfile';
 import Profile from './routes/Profile';
+import Group from './routes/Group';
 import DynamicPage from './routes/DynamicPage.js';
 import registerServiceWorker from './registerServiceWorker';
 import { Provider } from "react-redux"
@@ -26,6 +27,7 @@ const Pages = () => (
 		<Route path="/Home" exact component={Home} />
 		<Route path="/Files" exact component={Files} />
 		<Route path="/Shared" exact component={Shared} />
+		<Route path="/Group" exact component={Group} />
 		<Route path="/Activity" exact component={Activity} />
 		<Route path="/EditProfile" exact component={EditProfile} />
 		<Route path="/Profile" exact component={Profile} />

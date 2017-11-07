@@ -25,6 +25,7 @@ var data ={
 	isShared:null,
 	profile_updated:null,
 	curr_folder_id:null,
+	fileId_to_be_shared:null,
 	file_list:[],
 	shared_list: [],
 	file_list_recent:[],
@@ -86,12 +87,21 @@ const reducer = (state=data, action) =>{
 					})
 			break;
 		}
+		
+
+		case "SET_SHARE_FILE_ID":{
+			
+			return Object.assign({}, state, {
+						fileId_to_be_shared: action.payload
+					})
+			break;
+		}
 
 		case "SET_FOLDER":{
 			
 			return Object.assign({}, state, {
 						file_list: action.payload,
-						curr_folder_id: action.fileId
+						curr_folder_id: action.parentId
 					})
 			break;
 		}
@@ -123,7 +133,9 @@ const reducer = (state=data, action) =>{
 			
 			
 			return Object.assign({}, state, {
-							isValid: action.payload,
+							isValid: action.payload.isAuth,
+							username: action.payload.username
+
 							
 			})	
 				

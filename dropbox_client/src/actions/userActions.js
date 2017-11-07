@@ -45,6 +45,14 @@ export function setPassword(password) {
   }
 }
 
+export function setShareId(fileId) {
+  
+  return {
+    type: "SET_SHARE_FILE_ID",
+    payload: fileId
+  }
+}
+
 export function setFolder(parentId) {
   
   /*return {
@@ -142,7 +150,7 @@ export function checkAuth() {
           
           dispatch({
                    type: "AUTH",
-                   payload: data.isAuth
+                   payload: data
             })
 
         )
@@ -546,23 +554,6 @@ export function getActivity() {
 
           })
 
-
-    /*axios.post('http://localhost:3002/api/getActivity', {
-        
-            username
-          
-          })
-         .then((response) => {
-
-              dispatch({
-                   type: "ACTIVITY",
-                   payload: response.data.list
-              }) 
-
-          }).catch((err) => {
-
-             })*/
-
   }
 }
 
@@ -626,13 +617,46 @@ export function getProfile(username) {
   }
 }
 
-//Share Files
-export function shareFile(username,file_id,file_name,sharedWith) {
 
-  console.log('SHARE USERNAME ' + username);
+//Share Files
+export function shareFile(file_id,sharedWith) {
+
+  console.log('SHARE FILE_ID ' + file_id);
+  
   console.log('SHARE WITH ' + sharedWith);
 
-  return function(dispatch){
+    return function(dispatch){
+          axios({
+              method:'post',
+              url:'http://localhost:3002/api/shareFile',
+              withCredentials: true,
+              headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+              data: {file_id,sharedWith}
+           })
+          .then(response => {
+          
+            
+            if(response.status==200){
+              dispatch({
+                     type: "SHARE",
+                    payload: true
+                })
+              }
+              else {
+                dispatch({
+                     type: "SHARE",
+                    payload: false
+                })
+              } 
+          })
+          .catch(error => {
+              console.log(error);
+              return error;
+          });
+      
+  }
+
+/*  return function(dispatch){
 
     axios.post('http://localhost:3002/api/shareFile', {
         
@@ -650,28 +674,35 @@ export function shareFile(username,file_id,file_name,sharedWith) {
 
              })
 
-  }
+  }*/
 }
 
 //Get Shared Files
-export function getSharedFile(username) {
+export function getSharedFile() {
 
-  console.log('SHARE USERNAME ' + username);
+  console.log('SHARE USERNAME ' );
   
 
   return function(dispatch){
 
-    axios.post('http://localhost:3002/api/getSharedFile', {
-        
-            username
-          
-          })
-         .then((response) => {
+          axios({
+              method:'post',
+              url:'http://localhost:3002/api/getSharedFile',
+              withCredentials: true,
+              headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+              
+           })
+          .then((response) => {
 
-              dispatch({
-                   type: "GET_SHARE",
-                   payload: response.data.list
-              }) 
+              if(response.data.files==undefined){
+                  console.log('NO STARRED FILES')
+              }
+              else {
+                dispatch({
+                     type: "GET_SHARE",
+                     payload: response.data.files
+                })
+              }
 
           }).catch((err) => {
 

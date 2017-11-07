@@ -9,16 +9,17 @@ import file_icon from '../public/file_icon.png';
 import folder_icon from '../public/folder_icon.png'
 import '../App.css';
 import { setFirstName, setLastName, setUsername, setPassword, login, signup, logout, upload, setFiles } from "../actions/userActions";
-import { setStar,unsetStar, getStar, download, deleteFile, shareFile, checkAuth, uploadFolder, setFolder } from "../actions/userActions";
+import { setStar,unsetStar, getStar, download, deleteFile, shareFile, checkAuth, uploadFolder, setFolder, setShareId } from "../actions/userActions";
 import { connect } from "react-redux";
 import { Link } from 'react-router-dom';
+import Modal from 'react-modal';
 
 
 
 
 class Home extends Component {
 
-  
+
 
   componentWillMount() {
 
@@ -31,7 +32,7 @@ class Home extends Component {
 
       //Bringing Uploaded files
       
-      this.props.setFiles(0);
+      this.props.setFiles(this.props.username);
       this.props.getStar();
       
       
@@ -81,26 +82,30 @@ class Home extends Component {
                                                     this.props.setFolder(item.fileId)
                                                     this.props.history.push(url)
                                                   }
-                                              }><img src={folder_icon} className="file-icon" /></a>
-                    }      
+                                              }><img src={folder_icon} className="file-icon" /></a>}
+                          
 
                     <div className="dropdown home-row-objects">
                                       <a href="#" className="" data-toggle="dropdown" role="button"><img src={dots} className="dots "/></a>
                                         <ul className="dropdown-menu smiley-btn">
                                             <li className="smiley-content" onClick={() => this.props.deleteFile(this.props.username,item.fileId,item.file_name)}>Delete File</li>
                                             <li className="smiley-content" onClick={() => this.props.download(this.props.username,item.file_name)}>Download</li>
-                                            <li className="smiley-content" data-toggle="modal" data-target="#myModal">Share File</li>
+                                            <li className="smiley-content" data-toggle="modal" data-target="#myModal" 
+                                                            onClick={() => this.props.setShareId(item.fileId)}>
+                                                            Share File
+                                            </li>
+
 
                                         </ul>
+
+
+
+                                        
                     </div>
 
                     <img src={star} className="home-row-objects" onClick={() => this.props.setStar(item.fileId,item.file_name)}/>
                     
-                    
-                  
-                  </label>
-                  
-                                                  <div className="modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                    <div className="modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                                       <div className="modal-dialog" role="document">
                                                         <div className="modal-content">
                                                           <div className="modal-header">
@@ -117,11 +122,16 @@ class Home extends Component {
                                                           </div>
                                                           <div className="modal-footer">
                                                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                            <button type="button" className="btn btn-success" onClick={() => this.props.shareFile(this.props.username,item.file_id,item.file_name,document.getElementById('sharedWith').value)}>Share</button>
+                                                            <button type="button" className="btn btn-success" onClick={() => this.props.shareFile(this.props.fileId_to_be_shared,document.getElementById('sharedWith').value)}>Share</button>
                                                           </div>
                                                         </div>
                                                       </div>
                                                     </div>
+                    
+                  
+                  </label>
+                  
+                                                  
               </div> 
           )
       }
@@ -151,6 +161,7 @@ class Home extends Component {
                                <Link to="/Home" className="row" style={pad}>Home</Link>
                                <Link to="/Files" className="row" style={pad}>My Files</Link>
                                <Link to="/Shared" className="row" style={pad}>Shared Files</Link>
+                               <Link to="/Group" className="row" style={pad}>Groups</Link>
                                <Link to="/Activity" className="row" style={pad}>Activity Log</Link>
                                <Link to="/Profile" className="row" style={pad}>Profile</Link>
 
@@ -203,7 +214,7 @@ class Home extends Component {
                             <div>
                                  <label htmlFor="upload" className="btn btn-primary col-md-12 upload-btn">Upload files</label>
                                    <input type="file" name="upload" id="upload" style={hide} 
-                                          onChange={(e) =>this.props.upload(this.props.username,e.target.files[0],'1','0')}></input>
+                                          onChange={(e) =>this.props.upload(this.props.username,e.target.files[0],'1',username)}></input>
                             </div>
 
                             <div>
@@ -227,7 +238,7 @@ class Home extends Component {
                                                           </div>
                                                           <div className="modal-footer">
                                                             <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                            <button type="button" className="btn btn-success" onClick={() => this.props.uploadFolder(document.getElementById('folderName').value,'0','0')}>Create</button>
+                                                            <button type="button" className="btn btn-success" onClick={() => this.props.uploadFolder(document.getElementById('folderName').value,'0',username)}>Create</button>
                                                           </div>
                                                         </div>
                                                       </div>
@@ -256,9 +267,10 @@ function mapDispatchToProps(dispatch) {
         getStar: () => dispatch(getStar()),
         download: (username,file_name) => dispatch(download(username,file_name)),
         deleteFile: (username,file_id,file_name) => dispatch(deleteFile(username,file_id,file_name)),
-        shareFile: (username,file_id,file_name,sharedWith) => dispatch(shareFile(username,file_id,file_name,sharedWith)),
+        shareFile: (file_id,sharedWith) => dispatch(shareFile(file_id,sharedWith)),
         checkAuth: () => dispatch(checkAuth()),
         setFolder : (fileId) => dispatch(setFolder(fileId)),
+        setShareId: (fileId) => dispatch(setShareId(fileId)),
         dispatch
     };
 }
@@ -272,7 +284,8 @@ const mapStateToProps = (state) => {
            isValid: state.reducer.isValid,
            file_list_recent: state.reducer.file_list_recent,
            file_stared: state.reducer.file_stared,
-           curr_folder_id: state.reducer.curr_folder_id
+           curr_folder_id: state.reducer.curr_folder_id,
+           fileId_to_be_shared: state.reducer.fileId_to_be_shared
 
          };
 };

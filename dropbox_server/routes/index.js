@@ -11,6 +11,7 @@ var passport = require('passport');
 var cors = require('cors');
 const MongoStore = require('connect-mongo')(session);
 require('./passport')(passport);
+var kafka = require('./kafka/client');
 
 
 var corsOptions = {
@@ -84,11 +85,11 @@ module.exports = function(app,db){
 	        	console.log('4')
 	            res.status(401).send();
 	        }
-	        req.session.user = user.username;
+	       req.session.user = user.username;
 	        console.log(req.session.user);
 	        console.log("session initilized");
 	        req.login(user.username, function(err){
-				console.log('Matched');
+				console.log('Pass Matched');
 				res.status(200).send();
 			})
 	    })(req, res);
@@ -110,30 +111,31 @@ module.exports = function(app,db){
 		
 		const saltRounds = 10;
 		
-		
-		bcrypt.genSalt(saltRounds, function(err, salt) {
-		    bcrypt.hash(password, salt, function(err, hash) {
-		    	
-		    	var user= {
-						username: username,
-						password: hash,
-						first_name: first_name,
-						last_name: last_name
-				}
-				dropbox_userinfo.insertOne(user, function(err, res) {
-					
-					if(err){
-						response.status(400).json({status:false})
-					}
-					else {
-						console.log("Data Inserted Successfully !!"); 
-						response.status(200).json({status:true});
-					}
-					
-				})
-		    	
-		    });
-		});
+    	kafka.make_request('request_topic',{"username": username,"password": password,
+    										"first_name": first_name,"last_name": last_name ,
+    										"topic":"signUp"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {	
+            	console.log('RECEIVED FROM KAFKAAAAAAAAAA' + results.code)
+                if(results.code == 200){
+                	console.log('Received from kafka' + results.code)
+                	console.log(results)
+                	response.status(200).json({status:true});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).json({status:false})
+                	
+                    
+                }
+            }
+        });
 		
 	});
 	
@@ -163,6 +165,7 @@ module.exports = function(app,db){
 							"isOwner": true,
 							"isFile": isFile,
 							"parentId":parentId,
+							"sharedWith":[{type:String}]
 							//file_folder array if possible
 	
 						}
@@ -286,6 +289,7 @@ module.exports = function(app,db){
 							"isOwner": true,
 							"isFile": isFile,
 							"parentId":parentId,
+							"sharedWith":[{type:String}]
 							//file_folder array if possible
 	
 						}
@@ -363,7 +367,7 @@ module.exports = function(app,db){
 		var username = req.body.username;
 		var SetList="SELECT * FROM user_data WHERE username='"+ username +"' ORDER BY file_id DESC LIMIT 5 ";
 				
-		pool.getConnection(function(error,connection){
+		/*pool.getConnection(function(error,connection){
 			
 			connection.query(SetList, function(err , results){
 				
@@ -380,33 +384,45 @@ module.exports = function(app,db){
 				}
 				
 			});
-		});
+		});*/
 		
 	});
 	
 	//Set All File list on refresh
 	app.post('/api/setFiles', function(req,response) {
 		
-		//console.log('SET FILES' + req.user + req.body.parentId);
+		console.log('SET FILES' + req.user + req.body.parentId);
 		
 		var username = req.user;
 		var parentId = String(req.body.parentId);
 		
-		var UserExist = {"username": username, "parentId": parentId};
+		/*var UserExist = {"username": username, "parentId": parentId};*/
+		var UserExist = {"parentId": parentId};
 		
-		dropbox_userfiles.find(UserExist).toArray(function(err, files) {
-		    if (err) {
-		    	throw err;
-		    }
-		    else {
-		    	console.log('SET FILES')
-		    	console.log(files);
-		    	response.status(200).json({files:files});
-		    	
-		    }
 		
-		})
-		
+    	kafka.make_request('request_topic',{"parentId": parentId,"topic":"setFiles"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({files:results.value});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
+    	
 		
 	});
 
@@ -418,62 +434,36 @@ module.exports = function(app,db){
 		var username = req.user;
 		var file_id = req.body.file_id;
 		var file_name = req.body.file_name;
-		var FindFile = {username:username, "fileId":file_id};
-		var Set = {$set:{"isStarred":true}};
-		var User = { username: username};
-		var date = new Date();
-		var millisec = date.getTime();
-		var Star = {
-				username:username,
-				"isStarred":true
-		}
+		
+		
 		console.log('SERVER STAR : ' + file_name+file_id );
 		
-		var Activity = {
-				username:username,
-				activity_id:millisec,
-				activity:"Starred File : " + file_name
-		}
-		
-		dropbox_userfiles.update(FindFile, Set, function(err, files) {
-		    if (err) {
-		    	throw err;
-		    }
-		    else {
-		    		console.log('STAR')
-		    		
-		    	
-			    	dropbox_userfiles.find(Star).toArray(function(err, files) {
-					    if (err) {
-					    	throw err;
-					    }
-					    else {
-					    	
-					    	//Inserty entry in activity collection
-					    	
-					    	dropbox_useractivity.insertOne(Activity, function(err, res) {
-								
-								if(err){
-									response.status(400).json({status:false})
-								}
-								else {
-									console.log('STAR')
-							    	console.log(files);
-							    	response.status(200).json({files:files});
-								}
-								
-							})
-					    	
-					    	
-					    }
-					
-					})
-		    	
-		    }
-		
-		})
 		
 		
+		kafka.make_request('request_topic',{username:username, "fileId":file_id,"file_name":file_name,"topic":"star"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {	
+            	console.log('STAR RESPONSE')
+            	console.log(results.code)
+                if(results.code == 200){
+                	console.log('Star Received from kafka')
+                	console.log(results)
+                	response.status(200).json({files:results.value});
+                	
+                }
+                else {
+                	console.log('Star Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
 		
 	});
 	
@@ -486,64 +476,35 @@ module.exports = function(app,db){
 			var username = req.user;
 			var file_id = req.body.file_id;
 			var file_name = req.body.file_name;
-			var FindFile = {username:username, "fileId":file_id};
-			var Set = {$set:{"isStarred":false}};
-			var User = { username: username}
 			
-			var Star = {
-					username:username,
-					"isStarred":true
-			}
-			var date = new Date();
-			var millisec = date.getTime();
-			var Activity = {
-					username:username,
-					activity_id:millisec,
-					activity:"Un-Starred File : " + file_name
-			}
 			
 			
 			console.log('SERVER STAR : ' + file_name+file_id );
 			
-			dropbox_userfiles.update(FindFile, Set, function(err, files) {
-			    if (err) {
-			    	throw err;
-			    }
-			    else {
-			    		console.log('STAR')
-			    		
-			    	
-				    	dropbox_userfiles.find(Star).toArray(function(err, files) {
-						    if (err) {
-						    	throw err;
-						    }
-						    else {
-						    	
-						    	//Inserty entry in activity collection
-						    	
-						    	dropbox_useractivity.insertOne(Activity, function(err, res) {
-									
-									if(err){
-										response.status(400).json({status:false})
-									}
-									else {
-										console.log('STAR')
-								    	console.log(files);
-								    	response.status(200).json({files:files});
-									}
-									
-								})
-
-						    	
-						    }
-						
-						})
-			    	
-			    }
-			
-			})
-		
-		
+			kafka.make_request('request_topic',{username:username, "fileId":file_id,"file_name":file_name,"topic":"unstar"}, function(err,results){
+	            console.log('in result');
+	            console.log(results);
+	            if(err){
+	                done(err,{});
+	            }
+	            else
+	            {	
+	            	console.log('STAR RESPONSE')
+	            	console.log(results.code)
+	                if(results.code == 200){
+	                	console.log('Star Received from kafka')
+	                	console.log(results)
+	                	response.status(200).json({files:results.value});
+	                	
+	                }
+	                else {
+	                	console.log('Star Received Kafka false')
+	                	response.status(400).send();
+	                	
+	                    
+	                }
+	            }
+	        });
 		
 	});
 	
@@ -559,20 +520,33 @@ module.exports = function(app,db){
 		
 		var User = { username: username,isStarred:true}
 		
-			
 		
-		dropbox_userfiles.find(User).toArray(function(err, files) {
-		    if (err) {
-		    	throw err;
-		    }
-		    else {
-		    	
-		    	//console.log(files[0].file_folder);
-		    	response.status(200).json({files:files});
-		    	
-		    }
+    	kafka.make_request('request_topic',{"username": username,"isStarred":true,"topic":"getStar"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({files:results.value});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
 		
-		})
+		
+		
+
 		
 	});
 	
@@ -615,46 +589,29 @@ module.exports = function(app,db){
 				activity:"Deleted File : " + fileName
 		}
 		
-
 		
-		dropbox_userfiles.remove(FindFile, function(err, files) {
-		    if (err) {
-		    	throw err;
-		    }
-		    else {
-		    		console.log('STAR')
-		    		
-		    	
-			    	dropbox_userfiles.find(User).toArray(function(err, files) {
-					    if (err) {
-					    	throw err;
-					    }
-					    else {
-					    	
-					    		//Inserty entry in activity collection
-					    	
-						    	dropbox_useractivity.insertOne(Activity, function(err, res) {
-									
-									if(err){
-										response.status(400).json({status:false})
-									}
-									else {
-								    	console.log('AFTER DELETE')
-								    	console.log(files);
-								    	response.status(200).json({files:files});
-									}
-									
-								})
-	
-					    }
-					
-					})
-		    	
-		    }
-		
-		})
-		
-		
+    	kafka.make_request('request_topic',{username:username, "fileId":file_id,"file_name":fileName,"topic":"deleteFile"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({files:results.value});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
 		
 
 	});
@@ -670,21 +627,30 @@ module.exports = function(app,db){
 		var User = { username: username}
 		var Sort = {activity_id: -1}
 		
-			
+    	kafka.make_request('request_topic',{username:username,"topic":"getActivity"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({files:results.value});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });	
 		
-		dropbox_useractivity.find(User).sort(Sort).limit(10).toArray(function(err, files) {
-		    if (err) {
-		    	throw err;
-		    }
-		    else {
-		    	
-		    	//console.log(files[0].file_folder);
-		    	console.log(files)
-		    	response.status(200).json({files:files});
-		    	
-		    }
 		
-		})
 		
 		
 	});
@@ -721,13 +687,29 @@ module.exports = function(app,db){
 		console.log('SEND PROFILE : ' + username);
 		var query = { username: username };
 		
-		dropbox_userinfo.find(query).toArray(function(err, result) {
-		    if (err) {
-		    	throw err;
-		    }
-		    console.log(result);
-		    response.status(200).json({details:result})
-		});
+		kafka.make_request('request_topic',{username:username,"topic":"getProfile"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({details:results.value});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
+
 
 		
 	});
@@ -735,66 +717,70 @@ module.exports = function(app,db){
 	//Share File
 	app.post('/api/shareFile', function(req,res) {
 		
-		var username = req.body.username;
-		var file_id = req.body.file_id;
-		var file_name = req.body.file_name;
+		var username = req.user;
+		var fileId = req.body.file_id;
 		var sharedWith = req.body.sharedWith;
+		var FindFile = {"username":username, "fileId":fileId}
+		var Set = {
+					$push: {
+							sharedWith:{
+											"user": sharedWith
+										}
+						
+					  	  }
+				  }
 		console.log('SHARE PROFILE : ' + username);
-		console.log('SHARE PROFILE : ' + file_id);
-		console.log('SHARE PROFILE : ' + file_name);
+		console.log('SHARE PROFILE : ' + fileId);
 		console.log('SHARE WITH : ' + sharedWith);
-
-		var ShareFiles="INSERT into shared_files ( username, file_id, file_name, sharedWith) values ('" + username + "','" + file_id + "','" + file_name + "','" + sharedWith + "')";
 		
-		console.log(ShareFiles)
+		
+		dropbox_userfiles.update(FindFile, Set, function(err, files) {
+			if (err) {
+		    	throw err;
+		    }
+			else {
 				
-		pool.getConnection(function(error,connection){
-			connection.query(ShareFiles, function(err , results){
+				res.status(200).send();
 				
-				if (err) 
-				{
-					connection.release();
-					res.status(400).json({status:false});
-				}	
-				else
-				{
-					connection.release();
-					res.status(200).json({status:true});
-				}
-				
-			});
+			}
+			
+			
 		});
+		
+		
+
 		
 	});
 
 	//Get Shared Files
 	app.post('/api/getSharedFile', function(req,res) {
 		
-		var username = req.body.username;
+		var username = req.user;
 		
 		console.log('GET SHARE PROFILE : ' + username);
 		
-		var GetShareFile= "SELECT * from shared_files WHERE sharedWith='"+username+"'";
-		
-		console.log(GetShareFile)
-		
-		
-		pool.getConnection(function(error,connection){
-			connection.query(GetShareFile, function(err , results){
+		var Search = {
+						"sharedWith": {
+										"user":username
+									}
 				
-				if (err) 
-				{
-					connection.release();
-					res.status(400).json({list:''});
-				}	
-				else
-				{
-					connection.release();
-					res.status(200).json({list:results});
-				}
+					 }
+		
+		dropbox_userfiles.find(Search).toArray(function(err, files) {
+			if (err) {
+		    	throw err;
+		    }
+			else {
 				
-			});
+				console.log('SharedWith')
+				console.log(files)
+				res.status(200).json({files:files});
+				
+			}
+			
+			
 		});
+		
 		
 	});
 	
@@ -807,7 +793,7 @@ module.exports = function(app,db){
 		console.log(req.user);
 		console.log(req.isAuthenticated());
 		var isAuth = req.isAuthenticated();
-		response.status(200).json({isAuth:isAuth})
+		response.status(200).json({isAuth:isAuth,username:req.user})
 		
 		
 	});
