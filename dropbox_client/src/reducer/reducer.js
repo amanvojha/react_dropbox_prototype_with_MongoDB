@@ -31,7 +31,8 @@ var data ={
 	file_list_recent:[],
 	file_stared:[],
 	activity:[],
-	user_profile:[]	
+	user_profile:[],
+	group_list:[],	
 };
 const reducer = (state=data, action) =>{
 
@@ -148,6 +149,17 @@ const reducer = (state=data, action) =>{
 			return Object.assign({}, state, {
 						file_list_recent:action.payload,
 						file_list:action.payload
+					})
+					
+			break;
+		}
+
+		case "GROUP":{
+			
+			console.log('GROUP' + action.payload);
+			return Object.assign({}, state, {
+						group_list:action.payload
+						
 					})
 					
 			break;

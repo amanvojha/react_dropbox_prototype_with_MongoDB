@@ -6,9 +6,10 @@ import smiley from '../public/smiley.png';
 import dots from '../public/dots.svg';
 import file_icon from '../public/file_icon.png';
 import folder_icon from '../public/folder_icon.png'
+import group from '../public/group.png'
 import '../App.css';
 import { setFirstName, setLastName, setUsername, setPassword, login, signup, logout, upload, setFiles } from "../actions/userActions";
-import { setStar, getStar, download, getSharedFile, checkAuth, setFolder } from "../actions/userActions";
+import { setStar, getStar, download, getSharedFile, checkAuth, setFolder, createGroup, getGroup } from "../actions/userActions";
 import { connect } from "react-redux";
 import { Link } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ class Group extends Component {
         console.log('Pushing to the page ')
         this.props.history.push('/');
       }
+      this.props.getGroup();
 
       
 
@@ -53,69 +55,31 @@ class Group extends Component {
       paddingTop : "25px"
     }
 
-    var shared_list = this.props.shared_list.map((item,key) =>
+    var group_list = this.props.group_list.map((item,key) =>
       {
-          var url = "/Page/" + item.file_name  
+          var url = "/Page/" + item.file_name
 
           return(
               <div key={key}>
-                  <label htmlFor="fileName" className="home-file-row">{item.file_name}
-                    
+                  <label htmlFor="fileName" className="home-file-row">{item.group_name}
+
                     {(item.isFile==1) ?
                           <img src={file_icon} className="file-icon"/>
                     :
-                          <a href="#" onClick={() => 
-                                                  {
-                                                    this.props.setFolder(item.fileId)
-                                                    this.props.history.push(url)
-                                                  }
-                                              }><img src={folder_icon} className="file-icon" /></a>}
+                          <Link to={url} onClick={() => this.props.setFolder(item.fileId)}><img src={group} className="file-icon"/></Link>
+                    }
 
-                          <div className="dropdown home-row-objects">
+                    <div className="dropdown home-row-objects">
                                       <a href="#" className="" data-toggle="dropdown" role="button"><img src={dots} className="dots "/></a>
                                         <ul className="dropdown-menu smiley-btn">
+                                            <li className="smiley-content" /*onClick={() => this.props.deleteFile(this.props.username,item.fileId,item.file_name)}*/>Delete Group</li>
                                             
-                                            <li className="smiley-content" onClick={() => this.props.download(this.props.username,item.file_name)}>Download</li>
-                                            
-
-
                                         </ul>
+                    </div>
 
-
-
-                                        
-                          </div>
-
-
-                          <img src={star} className="home-row-objects" onClick={() => this.props.setStar(item.fileId,item.file_name)}/>
-                    
-                                                    <div className="modal fade" id="myModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                      <div className="modal-dialog" role="document">
-                                                        <div className="modal-content">
-                                                          <div className="modal-header">
-                                                            <h5 className="modal-title" id="exampleModalLabel">Share File</h5>
-                                                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                                              <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                          </div>
-                                                          <div className="modal-body">
-                                                              <label>Username :</label>
-                                                              <div className="col-sm-10">
-                                                                <input type="email" className="form-control" name="sharedWith" id="sharedWith" placeholder="Email"></input>
-                                                              </div>
-                                                          </div>
-                                                          <div className="modal-footer">
-                                                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                            <button type="button" className="btn btn-success" onClick={() => this.props.shareFile(this.props.fileId_to_be_shared,document.getElementById('sharedWith').value)}>Share</button>
-                                                          </div>
-                                                        </div>
-                                                      </div>
-                                                    </div>
-
-
+                  
                   </label>
                   
-                                                  
               </div> 
           )
       }
@@ -156,7 +120,7 @@ class Group extends Component {
                               
                               <h6 className="home-file-row">All Groups</h6>
                               <div>
-                                {shared_list}
+                                {group_list}
                               </div> 
 
                           </div>    
@@ -175,6 +139,33 @@ class Group extends Component {
                                   </div>
 
                             </div>
+
+                            <div>
+                                
+                                <label htmlFor="upload" className="btn btn-primary col-md-12 upload-btn" data-toggle="modal" data-target="#CreateGroup">Create New Group</label>
+                            </div>
+                                  <div className="modal fade" id="CreateGroup" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                      <div className="modal-dialog" role="document">
+                                                        <div className="modal-content">
+                                                          <div className="modal-header">
+                                                            <h5 className="modal-title" id="exampleModalLabel">Create New Group</h5>
+                                                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                                              <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                          </div>
+                                                          <div className="modal-body">
+                                                              <label>Group Name :</label>
+                                                              <div className="col-sm-10">
+                                                                <input type="text" className="form-control" name="groupName" id="groupName" placeholder="eg: Vegas Trip"></input>
+                                                              </div>
+                                                          </div>
+                                                          <div className="modal-footer">
+                                                            <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                            <button type="button" className="btn btn-success" onClick={() => this.props.createGroup(document.getElementById('groupName').value,'0',username)}>Create</button>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                 </div>
                             
                               
                             
@@ -195,12 +186,14 @@ function mapDispatchToProps(dispatch) {
     return {
         logout : () => dispatch(logout()),
         upload : (username,file) => dispatch(upload(username,file)),
+        createGroup : (groupName,isFile,parentId) => dispatch(createGroup(groupName,isFile,parentId)),
         getSharedFile: (username) => dispatch(getSharedFile(username)),
         setStar: (username,file_id) => dispatch(setStar(username,file_id)),
         getStar: (username) => dispatch(getStar(username)),
         download: (username,file_name) => dispatch(download(username,file_name)),
         setFolder : (fileId) => dispatch(setFolder(fileId)),
         checkAuth: () => dispatch(checkAuth()),
+        getGroup: () => dispatch(getGroup())
         
     };
 }
@@ -212,7 +205,7 @@ const mapStateToProps = (state) => {
            last_name: state.reducer.last_name,
            result: state.reducer.result,
            isValid: state.reducer.isValid,
-           shared_list: state.reducer.shared_list,
+           group_list: state.reducer.group_list,
            file_stared: state.reducer.file_stared
          };
 };

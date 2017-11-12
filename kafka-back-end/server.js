@@ -8,6 +8,7 @@ var unstar = require('./services/unstar');
 var deleteFile = require('./services/deleteFile');
 var getActivity = require('./services/getActivity');
 var getProfile = require('./services/getProfile');
+var setProfile = require('./services/setProfile');
 
 
 
@@ -195,6 +196,27 @@ consumer.on('message', function (message) {
     	
         
 		getProfile.handle_request(data.data, function(err,res){
+	        console.log('after handle'+res);
+	        var payloads = [
+	            { topic: data.replyTo,
+	                messages:JSON.stringify({
+	                    correlationId:data.correlationId,
+	                    data : res
+	                }),
+	                partition : 0
+	            }
+	        ];
+	        producer.send(payloads, function(err, data){
+	            console.log(data);
+	        });
+	        return;
+	    });
+	}
+	
+	if(data.data.topic==="setProfile"){
+    	
+        
+		setProfile.handle_request(data.data, function(err,res){
 	        console.log('after handle'+res);
 	        var payloads = [
 	            { topic: data.replyTo,

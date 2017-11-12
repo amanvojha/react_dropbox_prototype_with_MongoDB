@@ -65,6 +65,7 @@ module.exports = function(app,db){
 	var dropbox_userinfo = db.collection("dropbox_userinfo");
 	var dropbox_userfiles = db.collection("dropbox_userfiles");
 	var dropbox_useractivity = db.collection("dropbox_useractivity");
+	var dropbox_usergroups = db.collection("dropbox_usergroups");
 	
 	
 	
@@ -354,6 +355,126 @@ module.exports = function(app,db){
 				})
 			   
 		
+		
+	});
+	
+	
+	//Create Groups
+	app.post('/api/createGroup',urlencodedParser, function(req,response) {
+		
+		console.log('CREATE GROUP' + req.user + req.isAuthenticated());
+		console.log(req.files);
+		var username = req.user;
+		var fileName = req.body.groupName;
+		var isFile = req.body.isFile;
+		var parentId = String(req.body.parentId);
+
+		var FileExist = { "username": username, "file_name": fileName };
+		var UserExist = {"username": username, "parentId":parentId};
+		var date = new Date();
+		var millisec = date.getTime();
+		var InsertNew = {
+							"username": username,
+							"GroupId": millisec , 
+							"group_name": fileName,
+							"isFile": isFile,
+							"parentId":parentId,
+							"members":[{user:username}]
+							
+						}
+
+		
+		var FindFile = { username:username,
+						"group_name": fileName
+			
+		   }
+
+		
+
+		
+				dropbox_usergroups.find(FindFile).toArray(function(err, files) {
+				    if (err) {
+				    	throw err;
+				    }
+				    if(files.length==0) {
+				    	console.log('GROUP')
+				    	dropbox_usergroups.insertOne(InsertNew, function(err, res) {
+					
+							if(err){
+								response.status(400).json({status:false})
+							}
+							else {
+								console.log("Data Inserted Successfully !!"); 
+								dropbox_usergroups.find(UserExist).toArray(function(err, files) {
+								    if (err) {
+								    	throw err;
+								    }
+								    else {
+								    	console.log('RETURN')
+								    	console.log(files)
+								    	response.status(200).json({files:files});
+								    }
+								    
+								})
+								
+								
+							}
+					
+				    	})
+				    
+				    	
+				    }
+				    else {
+				    	console.log("File already present !!");
+				    	dropbox_usergroups.find(UserExist).toArray(function(err, files) {
+						    if (err) {
+						    	throw err;
+						    }
+						    else {
+						    	console.log('RETURN')
+						    	console.log(files)
+						    	response.status(200).json({files:files});
+						    }
+						    
+						})
+				    	
+				    }
+				
+				})
+			   
+		
+		
+	});
+	
+	//Set Star File list on refresh
+	app.post('/api/getGroup', function(req,response) {
+		
+		console.log('GROUPS SERVER' + req.user);
+		
+		var username = req.user;
+		
+		var Search = {
+				"members": {
+								"user":username
+							}
+		
+			 }
+
+		dropbox_usergroups.find(Search).toArray(function(err, files) {
+			if (err) {
+		    	throw err;
+		    }
+			else {
+				
+				console.log('Members')
+				console.log(files)
+				response.status(200).json({files:files});
+				
+			}
+			
+			
+		});
+	
 		
 	});
 	
@@ -671,12 +792,29 @@ module.exports = function(app,db){
 		var user = { username: username };
 		var details = { $set : { bio: bio, work: work, education: education, mobile: mobile, interest: interest } };
 		
-		dropbox_userinfo.updateOne(user, details, function(err, res) {
-		    if (err) throw err;
-		    console.log("1 document updated");
-		    response.status(200).json({status:true});
-		});
-		
+		kafka.make_request('request_topic',{"username":username,"bio": bio, "work": work, "education": education, "mobile": mobile, "interest": interest,"topic":"setProfile"}, function(err,results){
+            console.log('in result');
+            console.log(results);
+            if(err){
+                done(err,{});
+            }
+            else
+            {
+                if(results.code == 200){
+                	console.log('Received from kafka')
+                	console.log(results)
+                	response.status(200).json({status:true});
+                	
+                }
+                else {
+                	console.log('Received Kafka false')
+                	response.status(400).send();
+                	
+                    
+                }
+            }
+        });
+
 		
 	});
 	

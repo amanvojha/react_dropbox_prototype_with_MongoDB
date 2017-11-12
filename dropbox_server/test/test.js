@@ -8,7 +8,7 @@ const username = Math.random()+"@admin.com";
 
 it('should respond with success flag on', function(done) {
     request(app)
-      .post('/api/signup')
+      .post('/api/getSharedFile')
       .send({"username":username,
     	  "password":"admin",
     	  "first_name":"admin",
@@ -22,7 +22,7 @@ it('should respond with success flag on', function(done) {
  });
 it('should respond with success flag on', function(done) {
     request(app)
-      .post('/api/login')
+      .post('/api/checkAuth')
       .send({"username":username,
     	  "password":"admin",
     	  "first_name":"admin",
@@ -34,7 +34,7 @@ it('should respond with success flag on', function(done) {
         done();
       });
  });
-it('should respond with success flag on', function(done) {
+/*it('should respond with success flag on', function(done) {
     request(app)
       .post('/api/setHomeFiles')
       .send({"username":username,
@@ -119,4 +119,4 @@ it('should respond with success flag on', function(done) {
         if (err) done(err);
         done();
       });
- });
+ });*/

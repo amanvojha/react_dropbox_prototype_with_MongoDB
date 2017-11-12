@@ -296,6 +296,40 @@ export function uploadFolder(file_name,isFile,parentId) {
   }
 }
 
+//Upload folder 
+export function createGroup(groupName,isFile,parentId) {
+
+  console.log('CREATE GROUP '+ groupName);
+
+
+    return function(dispatch){
+
+
+        axios({
+              method:'post',
+              url:'http://localhost:3002/api/createGroup',
+              withCredentials: true,
+              headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+              data: {groupName,isFile,parentId}
+           })
+         .then((response) => {
+
+              console.log('TEST', response.data);
+              dispatch({
+                   type: "GROUP",
+                   payload: response.data.files
+              })
+
+          }).catch((err) => {
+
+             })
+
+  
+
+      
+  }
+}
+
 //Set All Files
 export function setFiles(parentId) {
 
@@ -449,6 +483,41 @@ export function getStar() {
               else {
                 dispatch({
                      type: "SET_STAR_FILES",
+                     payload: response.data.files
+                })
+              }   
+
+          }).catch((err) => {
+
+          })
+
+  }
+
+
+}
+
+export function getGroup() {
+
+  console.log('GET GROUP ');
+
+  return function(dispatch){
+
+          axios({
+              method:'post',
+              url:'http://localhost:3002/api/getGroup',
+              withCredentials: true,
+              headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+              
+           })
+         .then((response) => {
+
+              
+              if(response.data.files==undefined){
+                  console.log('NO GROUPS')
+              }
+              else {
+                dispatch({
+                     type: "GROUP",
                      payload: response.data.files
                 })
               }   
