@@ -1,3 +1,12 @@
+A dropbox prototype build with the following:
+
+React and Redux for front-end
+Node/Express for the backend
+MongoDb for database 
+* Kafka as a messaging queue
+
+
+
 Go to all the folders and run command "npm install".
 
 To run the Project
